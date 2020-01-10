@@ -7,7 +7,7 @@
 Summary: A program for synchronizing files over a network
 Name: rsync
 Version: 3.0.6
-Release: 5%{?prerelease}%{?dist}.1
+Release: 9%{?prerelease}%{?dist}
 Group: Applications/Internet
 URL: http://rsync.samba.org/
 
@@ -16,6 +16,8 @@ Source1: ftp://rsync.samba.org/pub/rsync/rsync-patches-%{version}%{?prerelease}.
 Source2: rsync.xinetd
 Patch0: rsync-3.0.6-permissions.patch
 Patch1: rsync-3.0.6-CVE-2011-1097.patch
+Patch2: rsync-3.0.6-ftrunc-sparse-files.patch
+Patch3: rsync-3.0.6-inflate-ret.patch
 BuildRequires: libacl-devel, libattr-devel, autoconf, popt-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 License: GPLv3+
@@ -51,6 +53,8 @@ patch -p1 -i patches/copy-devices.diff
 
 %patch0 -p1 -b .permissions
 %patch1 -p1 -b .CVE-2011-1097
+%patch2 -p1 -b .ftrunc-sparse-files
+%patch3 -p1 -b .inflate-ret
 
 %build
 rm -fr autom4te.cache
@@ -79,10 +83,21 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man5/rsyncd.conf.5*
 
 %changelog
-* Tue Mar 15 2011 Vojtech Vitek <vvitek@redhat.com> - 3.0.6-5.1
+* Mon Apr 02 2012 Vojtech Vitek (V-Teq) <vvitek@redhat.com> - 3.0.6-9
+- Revert portreserve, as portrelease functionality needs to be
+  implemented first in the rsync binary (#786076)
+
+* Fri Mar 30 2012 Vojtech Vitek (V-Teq) <vvitek@redhat.com> - 3.0.6-8
+- Prevent hang during the transfer when inflate (token) returned -5 (#804916)
+
+* Mon Feb 13 2012 Vojtech Vitek (V-Teq) <vvitek@redhat.com> - 3.0.6-7
+- Use portreserve to protect rsync/tcp port (#786076)
+- Truncate a copied sparse file at the end of transaction
+  (-S, --sparse option) (#737539)
+
+* Tue Mar 15 2011 Vojtech Vitek (V-Teq) <vvitek@redhat.com> - 3.0.6-6
 - Add upstream patch to fix CVE-2011-1097 - Incremental file-list
-  corruption due to temporary file_extra_cnt increments
-  Resolves: #684932
+  corruption due to temporary file_extra_cnt increments (#684933)
 
 * Tue Jun 22 2010 Jan Zeleny <jzeleny@redhat.com> - 3.0.6-5
 - added -fno-strict-aliasing to CFLAGS

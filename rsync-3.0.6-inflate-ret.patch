@@ -1,0 +1,11 @@
+--- a/token.c	2012-03-19 09:24:09.784483801 +0530
++++ b/token.c	2012-03-19 09:25:00.066481102 +0530
+@@ -599,7 +599,7 @@
+ 		rx_strm.next_out = (Bytef *)dbuf;
+ 		rx_strm.avail_out = AVAIL_OUT_SIZE(CHUNK_SIZE);
+ 		r = inflate(&rx_strm, Z_SYNC_FLUSH);
+-		if (r != Z_OK) {
++		if (r != Z_OK && r != Z_BUF_ERROR) {
+ 			rprintf(FERROR, "inflate (token) returned %d\n", r);
+ 			exit_cleanup(RERR_STREAMIO);
+ 		}

@@ -1,0 +1,123 @@
+From 96e051c86abc046034b371b75709ecb597497c63 Mon Sep 17 00:00:00 2001
+From: Wayne Davison <wayned@samba.org>
+Date: Sat, 6 Nov 2010 09:57:23 -0700
+Subject: [PATCH] Use ftruncate() at the end of a --sparse file.
+ Fixes bug 7337.
+
+ Removed one line (--fuzz=1) in Hunk #2 of receiver.c diff.
+ - vvitek
+
+---
+ fileio.c   |   28 ++++++++++++++++------------
+ receiver.c |    5 ++---
+ syscall.c  |   16 ++++++++++++++++
+ 3 files changed, 34 insertions(+), 15 deletions(-)
+
+diff --git a/fileio.c b/fileio.c
+index 0faa619..d8ac097 100644
+--- a/fileio.c
++++ b/fileio.c
+@@ -28,24 +28,32 @@
+ 
+ extern int sparse_files;
+ 
+-static char last_byte;
+ static OFF_T sparse_seek = 0;
+ 
+-int sparse_end(int f)
++int sparse_end(int f, OFF_T size)
+ {
+ 	int ret;
+ 
+ 	if (!sparse_seek)
+ 		return 0;
+ 
+-	do_lseek(f, sparse_seek-1, SEEK_CUR);
+-	sparse_seek = 0;
++#ifdef HAVE_FTRUNCATE
++	ret = do_ftruncate(f, size);
++#else
++	if (do_lseek(f, sparse_seek-1, SEEK_CUR) != size-1)
++		ret = -1;
++	else {
++		do {
++			ret = write(f, "", 1);
++		} while (ret < 0 && errno == EINTR);
++
++		ret = ret <= 0 ? -1 : 0;
++	}
++#endif
+ 
+-	do {
+-		ret = write(f, "", 1);
+-	} while (ret < 0 && errno == EINTR);
++	sparse_seek = 0;
+ 
+-	return ret <= 0 ? -1 : 0;
++	return ret;
+ }
+ 
+ 
+@@ -57,10 +65,6 @@ static int write_sparse(int f, char *buf, int len)
+ 	for (l1 = 0; l1 < len && buf[l1] == 0; l1++) {}
+ 	for (l2 = 0; l2 < len-l1 && buf[len-(l2+1)] == 0; l2++) {}
+ 
+-	/* XXX Riddle me this: why does this function SLOW DOWN when I
+-	 * remove the following (unneeded) line?? Core Duo weirdness? */
+-	last_byte = buf[len-1];
+-
+ 	sparse_seek += l1;
+ 
+ 	if (l1 == len)
+diff --git a/receiver.c b/receiver.c
+index fc3e40c..ba3566b 100644
+--- a/receiver.c
++++ b/receiver.c
+@@ -322,8 +322,7 @@ static int receive_data(int f_in, char *fname_r, int fd_r, OFF_T size_r,
+ 		goto report_write_error;
+ 
+ #ifdef HAVE_FTRUNCATE
+-	if (inplace && fd != -1
+-	 && ftruncate(fd, offset) < 0) {
++	if (inplace && fd != -1 && do_ftruncate(fd, offset) < 0) {
+ 		rsyserr(FERROR_XFER, errno, "ftruncate failed on %s",
+ 			full_fname(fname));
+ 	}
+@@ -333,6 +332,6 @@ static int receive_data(int f_in, char *fname_r, int fd_r, OFF_T size_r,
+ 		end_progress(total_size);
+ 
+-	if (fd != -1 && offset > 0 && sparse_end(fd) != 0) {
++	if (fd != -1 && offset > 0 && sparse_end(fd, offset) != 0) {
+ 	    report_write_error:
+ 		rsyserr(FERROR_XFER, errno, "write failed on %s",
+ 			full_fname(fname));
+diff --git a/syscall.c b/syscall.c
+index 1d72d19..a99783a 100644
+--- a/syscall.c
++++ b/syscall.c
+@@ -226,6 +226,22 @@ int do_rename(const char *fname1, const char *fname2)
+ 	return rename(fname1, fname2);
+ }
+ 
++#ifdef HAVE_FTRUNCATE
++int do_ftruncate(int fd, OFF_T size)
++{
++	int ret;
++
++	if (dry_run) return 0;
++	RETURN_ERROR_IF_RO_OR_LO;
++
++	do {
++		ret = ftruncate(fd, size);
++	} while (ret < 0 && errno == EINTR);
++
++	return ret;
++}
++#endif
++
+ void trim_trailing_slashes(char *name)
+ {
+ 	int l;
+-- 
+1.7.3.4
+
