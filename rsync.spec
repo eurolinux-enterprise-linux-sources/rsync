@@ -7,7 +7,7 @@
 Summary: A program for synchronizing files over a network
 Name: rsync
 Version: 3.0.6
-Release: 9%{?prerelease}%{?dist}
+Release: 9%{?prerelease}%{?dist}.1
 Group: Applications/Internet
 URL: http://rsync.samba.org/
 
@@ -18,6 +18,7 @@ Patch0: rsync-3.0.6-permissions.patch
 Patch1: rsync-3.0.6-CVE-2011-1097.patch
 Patch2: rsync-3.0.6-ftrunc-sparse-files.patch
 Patch3: rsync-3.0.6-inflate-ret.patch
+Patch4: rsync-3.0.6-iconv-logging.patch
 BuildRequires: libacl-devel, libattr-devel, autoconf, popt-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 License: GPLv3+
@@ -55,6 +56,7 @@ patch -p1 -i patches/copy-devices.diff
 %patch1 -p1 -b .CVE-2011-1097
 %patch2 -p1 -b .ftrunc-sparse-files
 %patch3 -p1 -b .inflate-ret
+%patch4 -p1 -b .iconv-logging
 
 %build
 rm -fr autom4te.cache
@@ -83,6 +85,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man5/rsyncd.conf.5*
 
 %changelog
+* Tue Oct 22 2013 Petr Stodulka <pstodulk@redhat.com> - 3.0.6-9.1
+- Fix segfault when perform iconv (#1022358)
+
 * Mon Apr 02 2012 Vojtech Vitek (V-Teq) <vvitek@redhat.com> - 3.0.6-9
 - Revert portreserve, as portrelease functionality needs to be
   implemented first in the rsync binary (#786076)
