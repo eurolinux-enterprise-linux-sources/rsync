@@ -1,0 +1,20 @@
+--- rsync.1.orig	2013-09-18 18:43:18.515029000 +0200
++++ rsync.1	2013-09-18 18:45:08.381263317 +0200
+@@ -2436,7 +2436,7 @@
+ control over, such as the outgoing socket when directly contacting an
+ rsync daemon.  See also these options in the \fB\-\-daemon\fP mode section.
+ .IP 
+-If rsync was complied without support for IPv6, the \fB\-\-ipv6\fP option
++If rsync was compiled without support for IPv6, the \fB\-\-ipv6\fP option
+ will have no effect.  The \fB\-\-version\fP output will tell you if this
+ is the case.
+ .IP 
+@@ -2537,7 +2537,7 @@
+ an \(lqaddress already in use\(rq error when nothing else is using the port,
+ try specifying \fB\-\-ipv6\fP or \fB\-\-ipv4\fP when starting the daemon).
+ .IP 
+-If rsync was complied without support for IPv6, the \fB\-\-ipv6\fP option
++If rsync was compiled without support for IPv6, the \fB\-\-ipv6\fP option
+ will have no effect.  The \fB\-\-version\fP output will tell you if this
+ is the case.
+ .IP 

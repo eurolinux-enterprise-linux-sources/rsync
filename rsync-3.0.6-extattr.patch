@@ -1,0 +1,34 @@
+diff --git a/rsync.c b/rsync.c
+index c315a45b..5a0f782c 100644
+--- a/rsync.c
++++ b/rsync.c
+@@ -419,13 +419,6 @@ int set_file_attrs(const char *fname, struct file_struct *file, stat_x *sxp,
+ 		get_acl(fname, sxp);
+ #endif
+ 
+-#ifdef SUPPORT_XATTRS
+-	if (am_root < 0)
+-		set_stat_xattr(fname, file, new_mode);
+-	if (preserve_xattrs && fnamecmp)
+-		set_xattr(fname, file, fnamecmp, sxp);
+-#endif
+-
+ 	if (!preserve_times || (S_ISDIR(sxp->st.st_mode) && preserve_times == 1))
+ 		flags |= ATTRS_SKIP_MTIME;
+ 	if (!(flags & ATTRS_SKIP_MTIME)
+@@ -485,6 +478,15 @@ int set_file_attrs(const char *fname, struct file_struct *file, stat_x *sxp,
+ 		updated = 1;
+ 	}
+ 
++#ifdef SUPPORT_XATTRS
++    /* This must come after calling chown(2), since that removes security
++       attributes (capabilities(5)). */
++	if (am_root < 0)
++		set_stat_xattr(fname, file, new_mode);
++	if (preserve_xattrs && fnamecmp)
++		set_xattr(fname, file, fnamecmp, sxp);
++#endif
++
+ #ifdef SUPPORT_ACLS
+ 	/* It's OK to call set_acl() now, even for a dir, as the generator
+ 	 * will enable owner-writability using chmod, if necessary.

@@ -7,7 +7,7 @@
 Summary: A program for synchronizing files over a network
 Name: rsync
 Version: 3.0.6
-Release: 9%{?prerelease}%{?dist}.1
+Release: 12%{?prerelease}%{?dist}
 Group: Applications/Internet
 URL: http://rsync.samba.org/
 
@@ -19,6 +19,8 @@ Patch1: rsync-3.0.6-CVE-2011-1097.patch
 Patch2: rsync-3.0.6-ftrunc-sparse-files.patch
 Patch3: rsync-3.0.6-inflate-ret.patch
 Patch4: rsync-3.0.6-iconv-logging.patch
+Patch5: rsync-3.0.6-extattr.patch
+Patch6: rsync-3.0.6-manpage.patch
 BuildRequires: libacl-devel, libattr-devel, autoconf, popt-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 License: GPLv3+
@@ -57,6 +59,8 @@ patch -p1 -i patches/copy-devices.diff
 %patch2 -p1 -b .ftrunc-sparse-files
 %patch3 -p1 -b .inflate-ret
 %patch4 -p1 -b .iconv-logging
+%patch5 -p1
+%patch6 -p0
 
 %build
 rm -fr autom4te.cache
@@ -85,8 +89,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man5/rsyncd.conf.5*
 
 %changelog
-* Tue Oct 22 2013 Petr Stodulka <pstodulk@redhat.com> - 3.0.6-9.1
-- Fix segfault when perform iconv (#1022358)
+* Fri Mar 28 2014 Pavel Šimerda <psimerda@redhat.com> - 3.0.6-12
+- Resolves: #1011219 - Typo in manpage
+
+* Wed Mar 26 2014 Pavel Šimerda <psimerda@redhat.com> - 3.0.6-11
+- Resolves: #981797 - rsync -X is ineffective when setting owner/group
+
+* Tue Oct 22 2013 Petr Stodulka <pstodulk@redhat.com> - 3.0.6-10
+- Fix segfault when perform iconv (#1004749)
 
 * Mon Apr 02 2012 Vojtech Vitek (V-Teq) <vvitek@redhat.com> - 3.0.6-9
 - Revert portreserve, as portrelease functionality needs to be
