@@ -8,7 +8,7 @@
 Summary: A program for synchronizing files over a network
 Name: rsync
 Version: 3.0.9
-Release: 17%{?prerelease}%{?dist}
+Release: 18%{?prerelease}%{?dist}
 Group: Applications/Internet
 URL: http://rsync.samba.org/
 
@@ -31,6 +31,7 @@ Patch1: rsync-man.patch
 Patch2: rsync-3.1.0-protect_args.patch
 Patch3: rsync-3.0.6-iconv-logging.patch
 Patch4: rsync-3.0.9-ineffective-owner.patch
+Patch5: rsync-3.1.0-sigterm-handle.patch
 
 %description
 Rsync uses a reliable algorithm to bring remote and host files into
@@ -66,6 +67,7 @@ patch -p1 -i patches/copy-devices.diff
 %patch2 -p1 -b .protect_args
 %patch3 -p1 -b .iconv-logging
 %patch4 -p1 -b .ineffective-owner
+%patch5 -p1 -b .sigterm-handle
 
 %build
 rm -fr autom4te.cache
@@ -113,6 +115,9 @@ rm -rf $RPM_BUILD_ROOT
 %systemd_postun_with_restart rsyncd.service
 
 %changelog
+* Tue Jan 24 2017 Michal Ruprich - 3.0.9-18
+- Resolves: #1324754 -  rsyncd unit enters failed state on exit
+
 * Tue Jun 23 2015 Luboš Uhliarik <luhliari@redhat.com> - 3.0.9-17
 - Resolves: #1082496 - socket activation for rsync doesn't work (added missing
   rsyncd@.service file)

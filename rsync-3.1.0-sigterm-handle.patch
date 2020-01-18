@@ -1,0 +1,33 @@
+diff --git a/rsync.c b/rsync.c
+index 104b274..b50146c 100644
+--- a/rsync.c
++++ b/rsync.c
+@@ -37,6 +37,7 @@ extern int preserve_times;
+ extern int copy_devices;
+ extern int am_root;
+ extern int am_server;
++extern int am_daemon;
+ extern int am_sender;
+ extern int am_receiver;
+ extern int am_generator;
+@@ -537,7 +538,7 @@ int set_file_attrs(const char *fname, struct file_struct *file, stat_x *sxp,
+ 	return updated;
+ }
+ 
+-RETSIGTYPE sig_int(UNUSED(int val))
++RETSIGTYPE sig_int(int sig_num)
+ {
+ 	/* KLUGE: if the user hits Ctrl-C while ssh is prompting
+ 	 * for a password, then our cleanup's sending of a SIGUSR1
+@@ -548,6 +549,11 @@ RETSIGTYPE sig_int(UNUSED(int val))
+ 	 * not ssh waiting for a password, then this tiny delay
+ 	 * shouldn't hurt anything. */
+ 	msleep(400);
++
++	/* If we're an rsync daemon listener (not a daemon server),
++	 * we'll exit with status 0 if we received SIGTERM. */
++	if (am_daemon && !am_server && sig_num == SIGTERM)
++		exit_cleanup(0);
+ 	exit_cleanup(RERR_SIGNAL);
+ }
+ 
