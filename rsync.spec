@@ -7,8 +7,8 @@
 
 Summary: A program for synchronizing files over a network
 Name: rsync
-Version: 3.0.9
-Release: 18%{?prerelease}%{?dist}
+Version: 3.1.2
+Release: 4%{?prerelease}%{?dist}
 Group: Applications/Internet
 URL: http://rsync.samba.org/
 
@@ -28,10 +28,8 @@ License: GPLv3+
 
 Patch0: rsync-3.0.10-lose-track.patch
 Patch1: rsync-man.patch
-Patch2: rsync-3.1.0-protect_args.patch
 Patch3: rsync-3.0.6-iconv-logging.patch
-Patch4: rsync-3.0.9-ineffective-owner.patch
-Patch5: rsync-3.1.0-sigterm-handle.patch
+Patch4: rsync-3.1.2-zlib.patch
 
 %description
 Rsync uses a reliable algorithm to bring remote and host files into
@@ -53,8 +51,6 @@ package.
 %setup -q -b 1
 %endif
 
-chmod -x support/*
-
 #Needed for compatibility with previous patched rsync versions
 patch -p1 -i patches/acls.diff
 patch -p1 -i patches/xattrs.diff
@@ -64,10 +60,8 @@ patch -p1 -i patches/copy-devices.diff
 
 %patch0 -p1 -b .lose-track
 %patch1 -p1 -b .man
-%patch2 -p1 -b .protect_args
 %patch3 -p1 -b .iconv-logging
-%patch4 -p1 -b .ineffective-owner
-%patch5 -p1 -b .sigterm-handle
+%patch4 -p1 -b .zlib
 
 %build
 rm -fr autom4te.cache
@@ -90,12 +84,16 @@ install -D -m644 %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/rsyncd.conf
 install -D -m644 %{SOURCE5} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/rsyncd
 install -D -m644 %{SOURCE6} $RPM_BUILD_ROOT/%{_unitdir}/rsyncd@.service
 
+%check
+make check
+chmod -x support/*
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc COPYING NEWS OLDNEWS README support/ tech_report.tex
+%doc COPYING NEWS OLDNEWS README tech_report.tex support/
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}.1*
 %{_mandir}/man5/rsyncd.conf.5*
@@ -115,6 +113,15 @@ rm -rf $RPM_BUILD_ROOT
 %systemd_postun_with_restart rsyncd.service
 
 %changelog
+* Wed Oct 18 2017 Michal Ruprich - 3.1.2-4
+- Related: #1432899 - removing dependencies on perl
+- using the bundled zlib.h(#1491582)
+- turning on upstream tests
+
+* Wed Aug 30 2017 Michal Ruprich - 3.1.2-1
+- Resolves: #1432899 - Rebase rsync to version >= 3.1.0
+- rebase to 3.1.2
+
 * Tue Jan 24 2017 Michal Ruprich - 3.0.9-18
 - Resolves: #1324754 -  rsyncd unit enters failed state on exit
 

@@ -1,0 +1,13 @@
+diff --git a/token.c.old b/token.c
+index ad9b9bc..b2a3614 100644
+--- a/token.c.old
++++ b/token.c
+@@ -21,7 +21,7 @@
+ 
+ #include "rsync.h"
+ #include "itypes.h"
+-#include <zlib.h>
++#include "zlib/zlib.h"
+ 
+ extern int do_compression;
+ extern int protocol_version;
