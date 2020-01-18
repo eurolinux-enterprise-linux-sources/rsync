@@ -8,7 +8,7 @@
 Summary: A program for synchronizing files over a network
 Name: rsync
 Version: 3.0.9
-Release: 15%{?prerelease}%{?dist}
+Release: 17%{?prerelease}%{?dist}
 Group: Applications/Internet
 URL: http://rsync.samba.org/
 
@@ -18,6 +18,7 @@ Source2: rsyncd.socket
 Source3: rsyncd.service
 Source4: rsyncd.conf
 Source5: rsyncd.sysconfig
+Source6: rsyncd@.service
 BuildRequires: libacl-devel, libattr-devel, autoconf, popt-devel, zlib-devel, systemd-units
 Requires: zlib
 Requires(post): systemd-units
@@ -29,6 +30,7 @@ Patch0: rsync-3.0.10-lose-track.patch
 Patch1: rsync-man.patch
 Patch2: rsync-3.1.0-protect_args.patch
 Patch3: rsync-3.0.6-iconv-logging.patch
+Patch4: rsync-3.0.9-ineffective-owner.patch
 
 %description
 Rsync uses a reliable algorithm to bring remote and host files into
@@ -63,6 +65,7 @@ patch -p1 -i patches/copy-devices.diff
 %patch1 -p1 -b .man
 %patch2 -p1 -b .protect_args
 %patch3 -p1 -b .iconv-logging
+%patch4 -p1 -b .ineffective-owner
 
 %build
 rm -fr autom4te.cache
@@ -83,6 +86,7 @@ install -D -m644 %{SOURCE3} $RPM_BUILD_ROOT/%{_unitdir}/rsyncd.service
 install -D -m644 %{SOURCE2} $RPM_BUILD_ROOT/%{_unitdir}/rsyncd.socket
 install -D -m644 %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/rsyncd.conf
 install -D -m644 %{SOURCE5} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/rsyncd
+install -D -m644 %{SOURCE6} $RPM_BUILD_ROOT/%{_unitdir}/rsyncd@.service
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -97,6 +101,7 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/sysconfig/rsyncd
 /%{_unitdir}/rsyncd.socket
 /%{_unitdir}/rsyncd.service
+/%{_unitdir}/rsyncd@.service
 
 %post
 %systemd_post rsyncd.service
@@ -108,6 +113,14 @@ rm -rf $RPM_BUILD_ROOT
 %systemd_postun_with_restart rsyncd.service
 
 %changelog
+* Tue Jun 23 2015 Luboš Uhliarik <luhliari@redhat.com> - 3.0.9-17
+- Resolves: #1082496 - socket activation for rsync doesn't work (added missing
+  rsyncd@.service file)
+
+* Tue Jun 23 2015 Luboš Uhliarik <luhliari@redhat.com> - 3.0.9-16
+- Resolves: #1090825 - rsync -X is ineffective when setting owner/group
+- Fixed bogus dates
+
 * Tue Feb 11 2014 Pavel Šimerda <psimerda@redhat.com> - 3.0.9-15
 - Resolves: #1032637 - rsync unit tests cannot be compiled
 - switch to hardened build
@@ -411,10 +424,10 @@ rm -rf $RPM_BUILD_ROOT
 * Wed Jun 04 2003 Elliot Lee <sopwith@redhat.com>
 - rebuilt
 
-* Mon Mar 11 2003 Hardy Merrill <hmerrill@redhat.com> 2.5.6-4
+* Tue Mar 11 2003 Hardy Merrill <hmerrill@redhat.com> 2.5.6-4
 - rebuild in new build env
 
-* Mon Mar 11 2003 Hardy Merrill <hmerrill@redhat.com> 2.5.6-3
+* Tue Mar 11 2003 Hardy Merrill <hmerrill@redhat.com> 2.5.6-3
 - fixed changelog comments
 
 * Mon Mar 10 2003 Hardy Merrill <hmerrill@redhat.com> 2.5.6-2
